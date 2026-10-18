@@ -105,7 +105,8 @@ body {
 }
 #screen-choose .fit,
 #screen-way .fit,
-#screen-grade .fit { align-items: center; justify-content: center; }
+#screen-grade .fit,
+#screen-ref .fit { align-items: center; justify-content: center; }
 
 .title {
   text-align: center;
@@ -150,8 +151,12 @@ body {
 .choose-card .choose-desc { font-size: 15px; opacity: 0.92; }
 .choose-card.boy  { background: linear-gradient(150deg, #ffb74d, #f57c00); }
 .choose-card.girl { background: linear-gradient(150deg, #ffab91, #f4643c); }
-.choose-card.way  { background: linear-gradient(150deg, #ffb74d, #ef6c00); width: 260px; }
+.choose-card.way  { background: linear-gradient(150deg, #ffb74d, #ef6c00); width: 198px; padding: 22px 16px; }
+.choose-card.way .avatar { font-size: 62px; }
+.choose-card.way .choose-name { font-size: 22px; }
+.choose-card.way .choose-desc { font-size: 13px; }
 .choose-card.way.preschool { background: linear-gradient(150deg, #aed581, #689f38); }
+.choose-card.way.ref { background: linear-gradient(150deg, #90caf9, #1e88e5); }
 .choose-card:active { transform: scale(0.95); }
 .choose-card:hover  { transform: translateY(-4px); }
 @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -770,6 +775,132 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   .donate-img { width: auto; height: min(68vh, 320px); max-height: 68vh; }
 }
 
+/* ══ Màn 📘 Bảng & Công Thức — 2 tab, luôn vừa viewport ══ */
+.ref-tabs { display: flex; gap: 12px; justify-content: center; margin-bottom: 6px; }
+.ref-tab {
+  font-family: inherit;
+  cursor: pointer;
+  border: 3px solid var(--primary-l);
+  background: var(--card);
+  color: var(--primary-d);
+  font-size: clamp(16px, 3.6vw, 22px);
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 10px 26px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.12s ease, background 0.2s;
+}
+.ref-tab.active { background: var(--primary); color: #fff; border-color: var(--primary-d); }
+.ref-tab:active { transform: scale(0.95); }
+
+.ref-panel {
+  width: min(760px, 92vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ref-sub { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.ref-subtab {
+  font-family: inherit;
+  cursor: pointer;
+  border: 3px solid var(--primary-l);
+  background: var(--card);
+  color: var(--primary-d);
+  font-size: clamp(14px, 3vw, 18px);
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 7px 20px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.09);
+  transition: transform 0.12s ease, background 0.2s;
+}
+.ref-subtab.active { background: #ffb300; color: #4e342e; border-color: #e65100; }
+.ref-subtab:active { transform: scale(0.95); }
+
+.ref-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.ref-chip {
+  font-family: inherit;
+  cursor: pointer;
+  border: 3px solid var(--primary-l);
+  background: var(--card);
+  color: var(--primary-d);
+  font-size: clamp(13px, 2.8vw, 17px);
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 6px 16px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.09);
+  transition: transform 0.12s ease, background 0.2s;
+}
+.ref-chip.active { background: var(--primary); color: #fff; border-color: var(--primary-d); }
+.ref-chip:active { transform: scale(0.94); }
+
+.ref-body { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+.ref-quiz { gap: 12px; }
+.ref-hint {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(15px, 3.4vw, 20px);
+  font-weight: 800;
+  color: var(--primary-d);
+}
+
+/* Bảng cửu chương — 10 dòng, xếp 2 cột trên máy lớn */
+.mult-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.mult-row {
+  background: var(--card);
+  border: 4px solid var(--primary-l);
+  border-radius: 18px;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: clamp(18px, 4.4vw, 30px);
+  font-weight: 900;
+  color: var(--primary-d);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.08);
+}
+.mult-row b { color: var(--primary); }
+
+/* Công thức — 2 cột thẻ */
+.fm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+.fm-card {
+  background: var(--card);
+  border: 4px solid var(--primary-l);
+  border-radius: 22px;
+  padding: 10px 14px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.09);
+  min-width: 0;
+}
+.fm-h {
+  font-size: clamp(15px, 3.2vw, 19px);
+  font-weight: 900;
+  color: var(--primary-d);
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 3px dashed var(--primary-l);
+}
+.fm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 0;
+  font-size: clamp(13px, 2.8vw, 16px);
+  line-height: 1.35;
+}
+.fm-row.fm-one { justify-content: center; text-align: center; }
+.fm-n { font-weight: 700; color: var(--primary-d); opacity: 0.75; flex: 0 1 auto; min-width: 0; }
+.fm-f { font-weight: 900; color: var(--primary); text-align: right; flex: 0 1 auto; min-width: 0; }
+.fm-one .fm-f { text-align: center; }
+
 /* ══ Mobile dọc ══ */
 @media (max-width: 560px) {
   .title { font-size: clamp(22px, 7vw, 30px); margin: 8px 0 4px; }
@@ -808,6 +939,15 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   .level-card { padding: 12px 4px; border-width: 3px; }
   .level-ico { font-size: 30px; }
   .level-name { font-size: 15px; }
+
+  .ref-tabs { gap: 8px; }
+  .ref-tab { padding: 8px 16px; border-width: 3px; }
+  .ref-subtab, .ref-chip { padding: 5px 12px; border-width: 3px; }
+  .mult-grid { gap: 6px; }
+  .mult-row { padding: 7px 8px; border-width: 3px; border-radius: 14px; }
+  .fm-grid { grid-template-columns: 1fr; }
+  .fm-card { padding: 8px 11px; border-width: 3px; }
+  .fm-row { gap: 8px; }
 }
 
 /* ══ Mobile ngang (màn hình thấp) ══ */
@@ -883,6 +1023,18 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   .level-card { padding: 8px 4px; }
   .donate-img { height: min(58vh, 260px); max-height: 58vh; }
   .donate-col-info { gap: 8px; }
+
+  .ref-tabs { gap: 8px; margin-bottom: 2px; }
+  .ref-tab { padding: 6px 14px; font-size: clamp(13px, 4.4vh, 17px); border-width: 3px; }
+  .ref-subtab, .ref-chip { padding: 4px 11px; font-size: clamp(12px, 4vh, 15px); border-width: 3px; }
+  .ref-panel { gap: 5px; }
+  .ref-hint { font-size: clamp(13px, 4.4vh, 17px); }
+  .mult-grid { gap: 6px; }
+  .mult-row { padding: 4px 8px; border-width: 3px; font-size: clamp(15px, 5.6vh, 24px); }
+  .fm-grid { gap: 7px; }
+  .fm-card { padding: 6px 10px; border-width: 3px; border-radius: 16px; }
+  .fm-h { font-size: clamp(13px, 4.4vh, 17px); margin-bottom: 4px; padding-bottom: 3px; }
+  .fm-row { font-size: clamp(11px, 3.8vh, 15px); padding: 2px 0; }
   .donate-caption { font-size: 14px; }
   .donate-stk { padding: 5px 14px; }
   .donate-stk-num { font-size: 19px; }

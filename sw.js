@@ -1,4 +1,4 @@
-const CACHE = "vl-toan-fbee201797";
+const CACHE = "vl-toan-7893ae1c62";
 const ASSETS = [
   "./index.html",
   "./manifest.webmanifest",

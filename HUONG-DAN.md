@@ -8,7 +8,7 @@
 
 | Việc cần làm | Lệnh |
 | --- | --- |
-| **Kiểm tra câu hỏi** (validate 25.000 câu sinh thử) | `node tools/check-questions.js 500` |
+| **Kiểm tra câu hỏi** (validate ~36.000 câu sinh thử — 12 chế độ × 6 cấp) | `node tools/check-questions.js 500` |
 | **Smoke-test toàn game** (cần `npm i jsdom --no-save` 1 lần) | `node tools/smoke-test.js` |
 | **Làm mới cache offline** (chạy sau mỗi lần sửa file) | `node tools/gen-sw.js` |
 | Kiểm tra cú pháp 1 file JS | `node --check js/games.js` |
@@ -23,11 +23,16 @@
 
 ```
 Chọn Bé (Trai/Gái)
-   → Chọn Cách Học — 3 nhánh cùng cấp:
+   → Chọn Cách Học — 4 nhánh cùng cấp:
         🎓 THEO LỚP     → Chọn lớp 1–5 → Menu 11 chế độ → Chơi
         🎮 THEO CHẾ ĐỘ  → Menu 11 chế độ → Chọn mức Dễ/Vừa/Khó → Chơi
         🌟 MẪU GIÁO    → Menu riêng 6 chế độ (Nhận Biết Số · Cộng Trừ 0–10 ·
                           So Sánh Số · To · Dài · Cao · Hình Dạng · Tư Duy & Quy Luật)
+        📘 BẢNG & CÔNG THỨC → Tra cứu 2 tab (xem & học thuộc, KHÔNG tính điểm):
+                          ✖️ Bảng Cửu Chương — bảng 2→9 đủ 10 dòng (📖 Học Thuộc) +
+                             🏆 Kiểm Tra trắc nghiệm 4 lựa chọn (chế độ `mulquiz`,
+                             thoát → quay về màn tra cứu, không rơi về menu)
+                          📐 Công Thức — công thức lớp 1–5 (chip đổi lớp)
    → Chơi: câu hỏi RANDOM VÔ HẠN (không giới hạn, không điểm tích lũy)
    → Bấm ⬅️ → Popup tổng kết: X đúng / Y câu + đánh giá → Chơi Tiếp / Thoát
 ```
@@ -103,6 +108,19 @@ Rồi upload lại. *(Chỉ mở `index.html` trực tiếp trên máy thì khô
 - Tên app: `manifest.webmanifest` (`name`, `short_name`, `theme_color`)
 - Sau đó: `node tools/gen-sw.js`
 
+### 3.6. Sửa màn 📘 Bảng & Công Thức (tra cứu)
+- **Bảng cửu chương:** phạm vi trong `js/data.js` → `MUL_TABLES` (mặc định `[2…9]`).
+  Hàm sinh câu kiểm tra: `QUESTIONS.mulquiz` (≈70% nhân, còn lại điền số thiếu / phép chia);
+  bảng hiện tại do `setMulQuizTable(t)` đặt (0 = 🔀 Trộn hết).
+- **Công thức theo lớp:** `js/data.js` → `REF_FORMULAS = { 1: [...], …, 5: [...] }` —
+  mỗi mục `{ icon, title, rows }`, `rows` là mảng `[nhãn, công thức]` hoặc chuỗi một dòng.
+- **Giao diện:** `index.html` → section `#screen-ref`; style trong `css/style.css`
+  (`.ref-*`, `.mult-*`, `.fm-*`); điều hướng/wiring ở cuối `js/main.js` (`renderRef`,
+  `startRefQuiz`, `playReturn` — quiz quay về `screen-ref` thay vì menu).
+- `MODES.mulquiz` chỉ để `check-questions.js` validate (menu build từ HTML `.mode-card`
+  nên chế độ này không hiện trong menu).
+- Chạy: `node tools/check-questions.js 500` → `node tools/smoke-test.js` → `node tools/gen-sw.js`.
+
 ---
 
 ## 4. Xuất bản lên web / cài lên iPhone
@@ -137,7 +155,8 @@ node tools/smoke-test.js
 node tools/gen-sw.js
 ```
 
-- [ ] Mở `index.html`, thử đủ các màn: Chọn Bé · Chọn Cách Học (3 nhánh) · Chọn Lớp · Menu · Popup chọn mức
+- [ ] Mở `index.html`, thử đủ các màn: Chọn Bé · Chọn Cách Học (4 nhánh) · Chọn Lớp · Menu · Popup chọn mức
+- [ ] Nhánh 📘 Bảng & Công Thức: tab ✖️ Bảng Nhân & ➗ Bảng Chia (bảng 2→9, mỗi bảng đủ 10 dòng, tách riêng) · tab 🏆 Kiểm Tra (bấm đúng, thoát về lại màn tra cứu) · tab 📐 Công Thức đổi chip lớp 1–5
 - [ ] Luồng 🌟 Mẫu Giáo: vào thẳng menu **6 chế độ** (đúng thứ tự lộ trình), bấm mode là chơi ngay, **cộng/trừ trong 0–10**
 - [ ] Câu Mẫu giáo: có nút **🔊 Nghe lại**, máy đọc câu hỏi, đáp án là hình/số/dấu (không có chữ), dấu `<` `=` `>` đúng hướng
 - [ ] Lớp 1–5: **không** hiện nút đọc, âm thanh chỉ là hiệu ứng 🎉

@@ -63,6 +63,11 @@
             <span class="choose-name">Mẫu Giáo</span>
             <span class="choose-desc">Bé 5 tuổi · máy đọc câu hỏi</span>
           </button>
+          <button class="choose-card way ref" data-way="ref">
+            <span class="avatar">📘</span>
+            <span class="choose-name">Bảng &amp; Công Thức</span>
+            <span class="choose-desc">Bảng cửu chương · Công thức 1–5</span>
+          </button>
         </div>
       </div>
     </div>
@@ -89,7 +94,46 @@
     </div>
   </section>
 
+  <!-- 3b. Bảng cửu chương & Công thức (tra cứu — chỉ xem, không tính điểm) -->
+  <section id="screen-ref" class="screen">
+    <header class="screen-head menu-head">
+      <button id="btn-ref-back" class="icon-btn" title="Quay lại">🔄</button>
+      <div id="menu-avatar-r" class="menu-avatar">🧒</div>
+      <button class="donate-btn" title="Ủng hộ tác giả"><span class="donate-ico">💰</span><span class="donate-txt">Ủng&nbsp;Hộ</span></button>
+    </header>
+    <div class="screen-body">
+      <div class="fit">
+        <div class="ref-tabs" id="ref-tabs">
+          <button class="ref-tab active" data-reftab="table">✖️ Bảng Cửu Chương</button>
+          <button class="ref-tab" data-reftab="formula">📐 Công Thức</button>
+        </div>
+
+        <!-- Panel: Bảng cửu chương -->
+        <div class="ref-panel" id="ref-panel-table">
+          <div class="ref-sub" id="ref-sub">
+            <button class="ref-subtab active" data-refsub="mul">✖️ Bảng Nhân</button>
+            <button class="ref-subtab" data-refsub="div">➗ Bảng Chia</button>
+            <button class="ref-subtab" data-refsub="quiz">🏆 Kiểm Tra</button>
+          </div>
+          <div class="ref-chips" id="ref-chips"></div>
+          <div class="ref-body" id="ref-learn"></div>
+          <div class="ref-body ref-quiz gone" id="ref-quiz">
+            <p class="ref-hint" id="ref-quiz-hint">Bé chọn bảng muốn kiểm tra rồi bấm Bắt Đầu nhé!</p>
+            <button class="btn big" id="btn-ref-start">🏆 Bắt Đầu Kiểm Tra</button>
+          </div>
+        </div>
+
+        <!-- Panel: Công thức -->
+        <div class="ref-panel gone" id="ref-panel-formula">
+          <div class="ref-chips" id="ref-grade-row"></div>
+          <div class="ref-body" id="ref-formulas"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- 4. Menu chế độ -->
+
   <section id="screen-menu" class="screen">
     <header class="screen-head menu-head">
       <button id="btn-switch" class="icon-btn" title="Đổi cách học">🔄</button>

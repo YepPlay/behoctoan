@@ -165,6 +165,7 @@ const MODES = {
   measure: { name: "Đo & Đo Lường",  icon: "📏", min: 2 },
   shape:   { name: "Hình Học",       icon: "🔷", min: 0 },
   story:   { name: "Toán Lời Văn",   icon: "📖", min: 1 },
+  mulquiz: { name: "Bảng Cửu Chương", icon: "✖️", min: 2 },
 };
 
 /* Các chế độ hiện trong menu MẪU GIÁO (tiền tiểu học) — đều chạy ở mức 0
@@ -664,6 +665,30 @@ QUESTIONS.story = function (g) {
     pickIdx([show(ans), show(Math.max(0, ans - ri(2, 9))), show(ans + ri(2, 9)), show(Math.max(0, ans - ri(10, 20)))].filter((x, i, arr) => arr.indexOf(x) === i), show(ans)));
 };
 
+/* ---------- 10b. KIỂM TRA BẢNG CỬU CHƯƠNG (màn Bảng & Công Thức) ---------- */
+const MUL_TABLES = [2, 3, 4, 5, 6, 7, 8, 9];
+let MUL_QUIZ_TABLE = 0; /* 0 = trộn tất cả bảng 2–9 */
+
+function setMulQuizTable(t) {
+  MUL_QUIZ_TABLE = MUL_TABLES.indexOf(t) >= 0 ? t : 0;
+}
+
+QUESTIONS.mulquiz = function (g) {
+  const t = MUL_QUIZ_TABLE || pick(MUL_TABLES);
+  const b = ri(1, 10);
+  const kind = pick(["mul", "mul", "miss", "div"]);
+  if (kind === "miss") {
+    const ans = t * b;
+    return makeQ(`<div class="q-line">${t} × ? = ${fmtN(ans)}</div>`, numChoices(b, 1, 10), "Số thiếu là:");
+  }
+  if (kind === "div") {
+    const ans = t * b;
+    return makeQ(`<div class="q-line">${fmtN(ans)} : ${t} = ?</div>`, numChoices(b, 1, 10), "Kết quả là:");
+  }
+  const ans = t * b;
+  return makeQ(`<div class="q-line">${t} × ${b} = ?</div>`, numChoices(ans, 1, 90), "Kết quả là:");
+};
+
 /* ---------- 11. SẴN SÀNG VÀO LỚP 1 (Mẫu giáo — tiền tiểu học) ----------
    Tổng hợp: đếm · cộng/trừ 0–10 · so sánh nhiều/ít · to/nhỏ · dài/ngắn ·
    cao/thấp · tìm quy luật · phân loại đồ vật */
@@ -725,4 +750,121 @@ QUESTIONS.ready = function (g) {
   const others = shuffle(READY_ALL.filter(x => cat.pool.indexOf(x) < 0)).slice(0, 8);
   return makeQ("", strChoices(correct, others.concat(cat.pool)), cat.prompt, cat.prompt,
     cat.line ? [cat.line] : null);
+};
+
+/* ---------- TRA CỨU CÔNG THỨC (màn Bảng & Công Thức) ---------- */
+const REF_FORMULAS = {
+  1: [
+    { icon: "➕", title: "Phép cộng & hiệu", rows: [
+      ["Cộng hoán vị", "a + b = b + a"],
+      ["Cộng với 0", "a + 0 = a"],
+      ["Trừ với chính nó", "a − a = 0"],
+      ["Kiểm tra", "a + b = c ⇒ c − a = b"],
+    ] },
+    { icon: "🔢", title: "Số chẵn · Số lẻ", rows: [
+      ["Số chẵn", "0, 2, 4, 6, 8,…"],
+      ["Số lẻ", "1, 3, 5, 7, 9,…"],
+    ] },
+    { icon: "📏", title: "Độ dài", rows: [
+      ["1 m", "= 10 dm"],
+      ["1 dm", "= 10 cm"],
+      ["1 cm", "= 10 mm"],
+    ] },
+    { icon: "🕐", title: "Thời gian", rows: [
+      ["1 ngày", "= 24 giờ"],
+      ["1 tuần", "= 7 ngày"],
+      ["1 năm", "= 12 tháng"],
+    ] },
+  ],
+  2: [
+    { icon: "✖️", title: "Phép nhân & chia", rows: [
+      ["Cộng hoán vị (nhân)", "a × b = b × a"],
+      ["Nhân với 0", "0 × a = 0"],
+      ["Nhân với 1", "a × 1 = a"],
+      ["Kiểm tra", "a × b = c ⇒ c : b = a"],
+    ] },
+    { icon: "📏", title: "Độ dài", rows: [
+      ["1 km", "= 1000 m"],
+      ["1 m", "= 100 cm"],
+      ["1 dm", "= 10 cm"],
+    ] },
+    { icon: "⚖️", title: "Khối lượng", rows: [
+      ["1 kg", "= 1000 g"],
+    ] },
+    { icon: "🕐", title: "Thời gian", rows: [
+      ["1 giờ", "= 60 phút"],
+      ["1 phút", "= 60 giây"],
+      ["1 ngày", "= 24 giờ"],
+      ["1 tuần", "= 7 ngày"],
+    ] },
+  ],
+  3: [
+    { icon: "🍕", title: "Phân số", rows: [
+      ["Đọc phân số", "a/n (a tử, n mẫu)"],
+      ["Cộng cùng mẫu", "a/n + b/n = (a+b)/n"],
+      ["Trừ cùng mẫu", "a/n − b/n = (a−b)/n"],
+    ] },
+    { icon: "🔁", title: "Làm tròn số", rows: [
+      "Hàng ≥ 5 → thêm 1; hàng < 5 → bỏ đi",
+    ] },
+    { icon: "📐", title: "Chu vi", rows: [
+      ["Hình vuông", "C = 4 × a"],
+      ["Hình chữ nhật", "C = (a + b) × 2"],
+      ["Tam giác", "C = a + b + c"],
+    ] },
+    { icon: "🟩", title: "Diện tích", rows: [
+      ["Hình vuông", "S = a × a"],
+      ["Hình chữ nhật", "S = a × b"],
+    ] },
+  ],
+  4: [
+    { icon: "💰", title: "Số thập phân", rows: [
+      ["Cộng/trừ", "Dấu phẩy thẳng hàng"],
+      ["× 10/100/1000", "Dịch dấu phẩy sang phải"],
+      [": 10/100/1000", "Dịch dấu phẩy sang trái"],
+    ] },
+    { icon: "🍕", title: "Phân số", rows: [
+      ["Cộng/trừ khác mẫu", "Quy đồng rồi cộng/trừ tử"],
+    ] },
+    { icon: "🔷", title: "Hình bình hành & hình thoi", rows: [
+      ["Chu vi hình bình hành", "C = (a + b) × 2"],
+      ["Diện tích hình bình hành", "S = a × h"],
+      ["Diện tích hình thoi", "S = (m × n) : 2"],
+    ] },
+    { icon: "📏", title: "Đơn vị đo lường", rows: [
+      ["1 km²", "= 100 ha"],
+      ["1 ha", "= 10 000 m²"],
+      ["1 m²", "= 100 dm²"],
+      ["1 tấn", "= 1000 kg"],
+      ["1 lít", "= 1000 ml"],
+    ] },
+  ],
+  5: [
+    { icon: "🍕", title: "Phân số", rows: [
+      ["Cộng/trừ khác mẫu", "Quy đồng rồi cộng/trừ tử"],
+      ["Nhân phân số", "(a×b)/(c×d)"],
+      ["Chia phân số", "(a×d)/(c×b)"],
+    ] },
+    { icon: "🏷️", title: "Phần trăm", rows: [
+      ["p%", "= p/100"],
+      ["p% của a", "= a × p : 100"],
+    ] },
+    { icon: "📐", title: "Diện tích", rows: [
+      ["Tam giác", "S = (a × h) : 2"],
+      ["Hình thang", "S = (a + c) × h : 2"],
+      ["Hình tròn", "S = r × r × 3,14"],
+    ] },
+    { icon: "⭕", title: "Hình tròn", rows: [
+      ["Chu vi hình tròn", "C = 2 × 3,14 × r"],
+    ] },
+    { icon: "🧊", title: "Thể tích", rows: [
+      ["Khối lập phương", "V = a × a × a"],
+      ["Khối hộp chữ nhật", "V = a × b × c"],
+    ] },
+    { icon: "🚌", title: "Vận tốc", rows: [
+      ["Quãng đường", "= v × t"],
+      ["Vận tốc", "= s : t"],
+      ["Thời gian", "= s : v"],
+    ] },
+  ],
 };

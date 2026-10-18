@@ -1,7 +1,7 @@
 const $ = s => document.querySelector(s);
 
 const THEME_KEYS = ["boy", "girl"];
-const WAY_KEYS = ["class", "mode", "preschool"];
+const WAY_KEYS = ["class", "mode", "preschool", "ref"];
 
 function storageGet(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } }
 function storageSet(key, val) { try { sessionStorage.setItem(key, val); } catch (e) { } }
@@ -23,6 +23,8 @@ function saveStore() {
 
 /* Chế độ chơi hiện tại (menu → play) */
 let playCtx = null;   // { mode, grade }
+/* Nơi màn Chơi quay về khi thoát: menu hoặc màn Bảng & Công Thức */
+let playReturn = "screen-menu";
 
 function show(id) {
   if (id !== "screen-play") Voice.stop();   /* rời màn chơi → tắt tiếng đọc */
@@ -241,7 +243,7 @@ function applyTheme(theme) {
   document.body.className = "theme-" + store.theme;
   buildDecor();
   const th = THEMES[store.theme] || THEMES.boy;
-  ["#menu-avatar", "#menu-avatar-g"].forEach(sel => {
+  ["#menu-avatar", "#menu-avatar-g", "#menu-avatar-r"].forEach(sel => {
     const av = $(sel);
     if (av) av.textContent = th.avatar;
   });
@@ -299,6 +301,7 @@ function updateVoiceBtn(grade) {
    Riêng Mẫu giáo (grade 0) chạy đúng mức 0 — không áp mức mở khoá của lớp.
    store.grade KHÔNG đổi — chỉ lớp bé chọn ở màn Chọn Lớp mới ghi. */
 function startMode(mode, grade) {
+  playReturn = "screen-menu";
   const m = MODES[mode];
   const g = grade === 0 ? 0 : Math.max(grade, m.min);
   playCtx = { mode, grade: g };
@@ -312,6 +315,10 @@ function startMode(mode, grade) {
 function exitToMenu() {
   Game.cancel();
   playCtx = null;
+  if (playReturn === "screen-ref") {
+    show("screen-ref");
+    return;
+  }
   buildMenu();
   show("screen-menu");
 }
@@ -368,6 +375,7 @@ function init() {
     store.way = way;
     saveStore();
     if (way === "class") show("screen-grade");
+    else if (way === "ref") { refState.grade = store.grade; renderRef(); show("screen-ref"); }
     else { buildMenu(); show("screen-menu"); }
   }
 
@@ -387,6 +395,8 @@ function init() {
   /* Menu: đổi cách học / đổi bé */
   $("#btn-switch").onclick = () => { Sfx.click(); show("screen-way"); };
   $("#menu-avatar").onclick = () => { Sfx.click(); applyTheme(store.theme === "girl" ? "boy" : "girl"); };
+  const refAv = $("#menu-avatar-r");
+  if (refAv) refAv.onclick = () => { Sfx.click(); applyTheme(store.theme === "girl" ? "boy" : "girl"); };
 
   /* Bấm mode */
   const levelPopup = $("#level-popup");
@@ -483,6 +493,45 @@ function init() {
 
   document.addEventListener("pointerdown", () => Sfx.warm(), { once: true });
 
+  /* 📘 Bảng cửu chương & Công thức */
+  const refBack = $("#btn-ref-back");
+  if (refBack) refBack.onclick = () => { Sfx.click(); show("screen-way"); };
+  const refTabs = $("#ref-tabs");
+  if (refTabs) refTabs.onclick = e => {
+    const b = e.target.closest(".ref-tab");
+    if (!b) return;
+    Sfx.click();
+    refState.tab = b.dataset.reftab;
+    renderRef();
+  };
+  const refSub = $("#ref-sub");
+  if (refSub) refSub.onclick = e => {
+    const b = e.target.closest(".ref-subtab");
+    if (!b) return;
+    Sfx.click();
+    refState.sub = b.dataset.refsub;
+    if (refState.sub !== "quiz" && refState.table === 0) refState.table = 2;
+    renderRef();
+  };
+  const refChipsEl = $("#ref-chips");
+  if (refChipsEl) refChipsEl.onclick = e => {
+    const b = e.target.closest(".ref-chip");
+    if (!b) return;
+    Sfx.click();
+    refState.table = parseInt(b.dataset.table, 10);
+    renderRef();
+  };
+  const refGrades = $("#ref-grade-row");
+  if (refGrades) refGrades.onclick = e => {
+    const b = e.target.closest(".ref-chip");
+    if (!b) return;
+    Sfx.click();
+    refState.grade = parseInt(b.dataset.g, 10);
+    renderRef();
+  };
+  const refStart = $("#btn-ref-start");
+  if (refStart) refStart.onclick = () => { Sfx.click(); startRefQuiz(); };
+
   /* Fit — mọi màn hình luôn vừa viewport, không scroll */
   const ro = new ResizeObserver(entries => {
     for (const e of entries) {
@@ -514,11 +563,92 @@ function init() {
     applyTheme(store.theme);
     buildMenu();
     show("screen-grade");
+  } else if (store.way === "ref") {
+    applyTheme(store.theme);
+    refState.grade = store.grade;
+    renderRef();
+    show("screen-ref");
   } else {
     applyTheme(store.theme);
     buildMenu();
     show("screen-menu");
   }
+}
+
+/* ============================================================
+   Màn 📘 Bảng Cửu Chương & Công Thức (tra cứu — chỉ xem)
+   ============================================================ */
+const refState = { tab: "table", sub: "mul", table: 2, grade: 1 };
+
+function refChips() {
+  const box = $("#ref-chips");
+  if (!box) return;
+  const list = refState.sub === "quiz" ? MUL_TABLES.concat([0]) : MUL_TABLES;
+  box.innerHTML = list.map(t => `
+    <button class="ref-chip${refState.table === t ? " active" : ""}" data-table="${t}">${t ? "Bảng " + t : "🔀 Trộn Hết"}</button>`).join("");
+}
+
+function refTableHTML(t, kind) {
+  const isDiv = kind === "div";
+  let rows = "";
+  for (let i = 1; i <= 10; i++) {
+    rows += isDiv
+      ? `<div class="mult-row">${t * i} : ${t} = <b>${i}</b></div>`
+      : `<div class="mult-row">${t} × ${i} = <b>${t * i}</b></div>`;
+  }
+  const title = isDiv ? `➗ Bảng chia ${t}` : `✖️ Bảng nhân ${t}`;
+  return `<div class="ref-hint">${title} — học thuộc rồi bấm 🔥 Kiểm Tra nhé!</div><div class="mult-grid">${rows}</div>`;
+}
+
+function refFormulaHTML(grade) {
+  const secs = (typeof REF_FORMULAS !== "undefined" && REF_FORMULAS[grade]) ? REF_FORMULAS[grade] : [];
+  return `<div class="fm-grid">` + secs.map(s => `
+    <div class="fm-card">
+      <div class="fm-h">${s.icon} ${s.title}</div>
+      ${s.rows.map(r => Array.isArray(r)
+        ? `<div class="fm-row"><span class="fm-n">${r[0]}</span><span class="fm-f">${r[1]}</span></div>`
+        : `<div class="fm-row fm-one"><span class="fm-f">${r}</span></div>`).join("")}
+    </div>`).join("") + `</div>`;
+}
+
+function renderRef() {
+  document.querySelectorAll(".ref-tab").forEach(b => b.classList.toggle("active", b.dataset.reftab === refState.tab));
+  const pT = $("#ref-panel-table"), pF = $("#ref-panel-formula");
+  if (pT) pT.classList.toggle("gone", refState.tab !== "table");
+  if (pF) pF.classList.toggle("gone", refState.tab !== "formula");
+
+  if (refState.tab === "table") {
+    if (refState.sub !== "quiz" && refState.table === 0) refState.table = 2;
+    document.querySelectorAll(".ref-subtab").forEach(b => b.classList.toggle("active", b.dataset.refsub === refState.sub));
+    refChips();
+    const learn = $("#ref-learn"), quiz = $("#ref-quiz");
+    if (learn) { learn.classList.toggle("gone", refState.sub === "quiz"); learn.innerHTML = refTableHTML(refState.table, refState.sub); }
+    if (quiz) {
+      quiz.classList.toggle("gone", refState.sub !== "quiz");
+      const hint = $("#ref-quiz-hint");
+      if (hint) hint.textContent = refState.table
+        ? `🏆 Kiểm tra Bảng ${refState.table} — bảng nhân & bảng chia`
+        : "🔀 Trộn hết bảng 2 – 9 — bé giỏi lắm!";
+    }
+  } else {
+    const row = $("#ref-grade-row");
+    if (row) row.innerHTML = [1, 2, 3, 4, 5].map(g =>
+      `<button class="ref-chip${g === refState.grade ? " active" : ""}" data-g="${g}">Lớp ${g}</button>`).join("");
+    const f = $("#ref-formulas");
+    if (f) f.innerHTML = refFormulaHTML(refState.grade);
+  }
+  const sc = document.getElementById("screen-ref");
+  if (sc) fitScreen(sc);
+}
+
+function startRefQuiz() {
+  if (typeof setMulQuizTable !== "undefined") setMulQuizTable(refState.table);
+  playReturn = "screen-ref";
+  const g = Math.max(2, refState.grade);
+  playCtx = { mode: "mulquiz", grade: g, back: "screen-ref" };
+  updateVoiceBtn(g);
+  show("screen-play");
+  if (typeof Game !== "undefined") Game.start("mulquiz", g, refState.table ? `Bảng ${refState.table}` : "Bảng Cửu Chương", "📘");
 }
 
 document.addEventListener("DOMContentLoaded", init);

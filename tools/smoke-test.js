@@ -1,5 +1,7 @@
-/* Smoke-test toàn luồng bằng jsdom: chọn bé → cách học (Lớp/Chế Độ/Mẫu giáo) →
-   menu → chơi cả 11 chế độ → trả lời đúng/sai → popup tổng kết → thoát.
+/* Smoke-test toàn luồng bằng jsdom: chọn bé → cách học (Lớp/Chế Độ/Mẫu giáo/
+   Bảng & Công Thức) → menu → chơi cả 11 chế độ → trả lời đúng/sai → popup tổng
+   kết → thoát; riêng nhánh 📘 Bảng & Công Thức: học thuộc bảng 7 → kiểm tra →
+   về lại màn tra cứu → tab công thức lớp 5.
    Lệnh: node tools/smoke-test.js */
 const fs = require("fs");
 const path = require("path");
@@ -217,8 +219,8 @@ window.init = init;
     "Lớp 1–5: không có nút đọc (bé đã biết đọc)");
   ok(document.querySelectorAll(".opt-btn").length >= 3, "Phân số ở mức Dễ vẫn sinh được câu");
 
-  console.log("\n[6] Chạy thử TẤT CẢ 11 chế độ × 6 cấp (mẫu giáo→lớp 5) — 48 câu/chế độ");
-  for (const mode of ["ready", "num", "calc", "cmp", "mul", "frac", "dec", "pct", "measure", "shape", "story"]) {
+  console.log("\n[6] Chạy thử TẤT CẢ 12 chế độ × 6 cấp (mẫu giáo→lớp 5) — 48 câu/chế độ");
+  for (const mode of ["ready", "num", "calc", "cmp", "mul", "frac", "dec", "pct", "measure", "shape", "story", "mulquiz"]) {
     let count = 0, err = null;
     for (const grade of [0, 1, 2, 3, 4, 5]) {
       const g = Math.max(grade, T.MODES[mode].min);
@@ -240,7 +242,7 @@ window.init = init;
   }
 
   console.log("\n[7] Render từng chế độ qua UI (không lỗi JS)");
-  for (const mode of ["ready", "num", "calc", "cmp", "mul", "frac", "dec", "pct", "measure", "shape", "story"]) {
+  for (const mode of ["ready", "num", "calc", "cmp", "mul", "frac", "dec", "pct", "measure", "shape", "story", "mulquiz"]) {
     let err = null;
     try {
       T.Game.start(mode, 3, "test", "🧮");
@@ -265,6 +267,103 @@ window.init = init;
     } catch (e) { err = e; }
     ok(!err, `render ${mode} (mẫu giáo)${err ? " — LỖI: " + err.message : ""}`);
   }
+
+  console.log("\n[8] Luồng 📘 BẢNG & CÔNG THỨC (tra cứu — không tính điểm)");
+  document.querySelector("#btn-back").click();   /* chưa trả lời → về thẳng menu */
+  ok(active() === "screen-menu", "Thoát màn chơi → về menu");
+  document.querySelector("#btn-switch").click();
+  document.querySelector('.choose-card[data-way="ref"]').click();
+  ok(active() === "screen-ref", "Chọn 📘 Bảng & Công Thức → màn tra cứu");
+  ok(window.sessionStorage.getItem("mt.way") === "ref", "Nhánh ref được lưu (mở lại đúng màn)");
+  ok(document.querySelectorAll('#ref-chips .ref-chip').length === 8,
+    "Tab Bảng Nhân: đủ 8 bảng (Bảng 2 → Bảng 9)");
+  ok(document.querySelector('#ref-chips .ref-chip[data-table="7"]').classList.contains("active") === false,
+    "Bảng 7 chưa được chọn (mặc định Bảng 2)");
+  document.querySelector('#ref-chips .ref-chip[data-table="7"]').click();
+  const learnTxt = document.querySelector("#ref-learn").textContent.replace(/\s+/g, " ");
+  ok(/7 × 9 = 63/.test(learnTxt), "Học thuộc bảng 7: có dòng 7 × 9 = 63");
+  ok(/7 × 10 = 70/.test(learnTxt), "Bảng nhân bảng 7: có dòng 7 × 10 = 70");
+  ok(!/: \d+ =/.test(learnTxt), "Tab Bảng Nhân không trộn phép chia vào");
+
+  /* Tab ➗ Bảng Chia — tách riêng khỏi bảng nhân */
+  document.querySelector('.ref-subtab[data-refsub="div"]').click();
+  const divTxt = document.querySelector("#ref-learn").textContent.replace(/\s+/g, " ");
+  ok(/63 : 7 = 9/.test(divTxt), "Bảng chia bảng 7: có dòng 63 : 7 = 9");
+  ok(/70 : 7 = 10/.test(divTxt), "Bảng chia bảng 7: có dòng 70 : 7 = 10");
+  ok(!/×/.test(divTxt), "Tab Bảng Chia không trộn phép nhân vào");
+  ok(document.querySelectorAll('#ref-chips .ref-chip').length === 8,
+    "Tab Bảng Chia: đủ 8 bảng, không có 🔀 Trộn Hết");
+  document.querySelector('#ref-chips .ref-chip[data-table="4"]').click();
+  ok(/20 : 4 = 5/.test(document.querySelector("#ref-learn").textContent.replace(/\s+/g, " ")),
+    "Đổi sang Bảng 4 ở tab chia → 20 : 4 = 5");
+  document.querySelector('#ref-chips .ref-chip[data-table="7"]').click();
+
+  /* Chuyển sang tab Kiểm Tra */
+  document.querySelector('.ref-subtab[data-refsub="quiz"]').click();
+  ok(document.querySelectorAll('#ref-chips .ref-chip').length === 9,
+    "Ô Kiểm Tra: 8 bảng + ô 🔀 Trộn Hết");
+  ok(!document.querySelector("#ref-quiz").classList.contains("gone"), "Ô Bắt Đầu Kiểm Tra hiện ra");
+  ok(document.querySelector("#ref-learn").classList.contains("gone"), "Bảng học thuộc ẩn đi");
+  ok(/Bảng 7/.test(document.querySelector("#ref-quiz-hint").textContent),
+    "Gợi ý nhắc đúng bảng bé chọn (Bảng 7)");
+
+  document.querySelector("#btn-ref-start").click();
+  ok(active() === "screen-play", "Bắt đầu kiểm tra → màn chơi");
+  ok(window.__playCtx.mode === "mulquiz" && window.__playCtx.back === "screen-ref",
+    "Phiên chơi là mulquiz, biết đường quay về màn tra cứu");
+
+  /* Trả lời đúng 1 câu (sinh câu từ bảng 7 đã chọn) */
+  const qTxt = document.querySelector("#play-area .q-box").textContent.replace(/\s+/g, " ").trim();
+  ok(/(^7 ×|\d+ : 7 = \?)/.test(qTxt), "Câu hỏi thuộc bảng 7: " + qTxt);
+  let want = null, m2;
+  if ((m2 = /^(\d+) × (\d+) = \?$/.exec(qTxt))) want = +m2[1] * +m2[2];
+  else if ((m2 = /^(\d+) × \? = (\d+)$/.exec(qTxt))) want = Math.round(+m2[2] / +m2[1]);
+  else if ((m2 = /^(\d+) : (\d+) = \?$/.exec(qTxt))) want = Math.round(+m2[1] / +m2[2]);
+  let hit = null;
+  if (want != null) {
+    for (const b of document.querySelectorAll(".opt-btn")) {
+      if (b.textContent.trim() === String(want)) { hit = b; break; }
+    }
+  }
+  ok(hit !== null, `Tìm được nút đáp án ${want} trong 4 lựa chọn`);
+  if (hit) hit.click();
+  ok(document.querySelector(".opt-btn.good") !== null, "Bấm đúng → nút 🟢");
+  ok(T.Game.stats().correct === 1, "Câu kiểm tra được tính vào phiên");
+
+  /* Thoát → phải về lại màn tra cứu (KHÔNG rơi về menu) */
+  document.querySelector("#btn-back").click();
+  ok(document.querySelector("#summary-popup").classList.contains("open"), "Bấm ⬅️ → popup tổng kết");
+  document.querySelector("#btn-exit").click();
+  ok(active() === "screen-ref", "\"Thoát\" → về lại màn Bảng & Công Thức (không phải menu)");
+  ok(T.Game.stats().total === 0, "Thoát → bộ đếm phiên reset");
+
+  /* Quiz bảng 7 phải trộn đủ 3 dạng: nhân · số thiếu · chia */
+  let mulSeen = 0, missSeen = 0, chiaSeen = 0;
+  for (let i = 0; i < 60; i++) {
+    const plain = String(T.QUESTIONS.mulquiz(3).html).replace(/<[^>]*>/g, "").trim();
+    if (/^7 × \d+ = \?$/.test(plain)) mulSeen++;
+    else if (/^7 × \? = \d+$/.test(plain)) missSeen++;
+    else if (/^\d+ : 7 = \?$/.test(plain)) chiaSeen++;
+  }
+  ok(mulSeen > 0 && missSeen > 0 && chiaSeen > 0,
+    `Quiz bảng 7 đủ 3 dạng — nhân ${mulSeen} · số thiếu ${missSeen} · chia ${chiaSeen}`);
+
+  /* Tab Công thức */
+  document.querySelector('.ref-tab[data-reftab="formula"]').click();
+  ok(!document.querySelector("#ref-panel-formula").classList.contains("gone"), "Chuyển sang tab 📐 Công Thức");
+  ok(document.querySelector("#ref-panel-table").classList.contains("gone"), "Panel bảng cửu chương ẩn đi");
+  ok(document.querySelectorAll('#ref-grade-row .ref-chip').length === 5, "Đủ 5 chip Lớp 1 → Lớp 5");
+  document.querySelector('#ref-grade-row .ref-chip[data-g="5"]').click();
+  const fm5 = document.querySelector("#ref-formulas").textContent.replace(/\s+/g, " ");
+  ok(/Tam giác/.test(fm5) && /S = \(a × h\) : 2/.test(fm5), "Công thức lớp 5: diện tích tam giác");
+  ok(/3,14/.test(fm5), "Công thức lớp 5: hình tròn (3,14)");
+  document.querySelector('#ref-grade-row .ref-chip[data-g="1"]').click();
+  const fm1 = document.querySelector("#ref-formulas").textContent.replace(/\s+/g, " ");
+  ok(/a \+ b = b \+ a/.test(fm1), "Công thức lớp 1: cộng hoán vị");
+
+  /* Quay về màn Chọn Cách Học */
+  document.querySelector("#btn-ref-back").click();
+  ok(active() === "screen-way", "Nút 🔄 → về màn Chọn Cách Học");
 
   console.log("\n" + (fails ? `❌ ${fails} mục FAIL` : "✅ SMOKE-TEST TẤT CẢ OK"));
   process.exit(fails ? 1 : 0);
