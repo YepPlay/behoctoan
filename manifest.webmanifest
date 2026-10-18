@@ -1,0 +1,23 @@
+{
+  "name": "Bé Học Toán — Toán Tiểu Học",
+  "short_name": "Bé Học Toán",
+  "description": "Trò chơi học toán tiểu học lớp 1–5: học số, cộng trừ, so sánh, nhân chia, phân số, thập phân, phần trăm, đo lường, hình học, toán lời văn.",
+  "lang": "vi",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#fff3e0",
+  "theme_color": "#f57c00",
+  "categories": ["education", "kids", "games"],
+  "icons": [
+    { "src": "assets/images/icon-32.png", "sizes": "32x32", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
