@@ -27,7 +27,7 @@
     <div class="screen-body">
       <div class="fit">
         <h1 class="title">🧮 Bé Học Toán 🎓</h1>
-        <p class="subtitle">Toán tiểu học lớp 1 – 5</p>
+        <p class="subtitle">Mẫu giáo &amp; Lớp 1 – 5</p>
         <div class="choose-row">
           <button class="choose-card boy" data-theme="boy">
             <span class="avatar">🧒</span>
@@ -57,6 +57,11 @@
             <span class="avatar">🎮</span>
             <span class="choose-name">Theo Chế Độ</span>
             <span class="choose-desc">Chọn môn mình thích</span>
+          </button>
+          <button class="choose-card way preschool" data-way="preschool">
+            <span class="avatar">🌟</span>
+            <span class="choose-name">Mẫu Giáo</span>
+            <span class="choose-desc">Bé 5 tuổi · máy đọc câu hỏi</span>
           </button>
         </div>
       </div>
@@ -95,7 +100,12 @@
       <div class="fit">
         <div class="menu-sub" id="menu-sub">🎓 Theo lớp</div>
         <div class="mode-grid" id="mode-grid">
-          <button class="mode-card featured" data-mode="num">
+          <button class="mode-card featured" data-mode="ready">
+            <span class="mode-icon">🎒</span>
+            <span class="mode-name">Sẵn Sàng Vào 1</span>
+            <span class="mode-lock"></span>
+          </button>
+          <button class="mode-card" data-mode="num">
             <span class="mode-icon">🔢</span>
             <span class="mode-name">Học Số</span>
             <span class="mode-lock"></span>
@@ -155,6 +165,7 @@
     <header class="screen-head play-head">
       <button id="btn-back" class="icon-btn" title="Về menu">⬅️</button>
       <div class="play-progress" id="play-progress"></div>
+      <button id="btn-voice" class="icon-btn gone" title="Bật/tắt đọc câu hỏi">🔊</button>
       <button class="donate-btn" title="Ủng hộ tác giả"><span class="donate-ico">💰</span><span class="donate-txt">Ủng&nbsp;Hộ</span></button>
     </header>
     <div class="screen-body">
@@ -219,8 +230,10 @@
     </div>
   </div>
 
+  <script src="js/voice-lines.js"></script>
   <script src="js/data.js"></script>
   <script src="js/audio.js"></script>
+  <script src="js/voice.js"></script>
   <script src="js/games.js"></script>
   <script src="js/main.js"></script>
   <script src="js/pwa.js"></script>

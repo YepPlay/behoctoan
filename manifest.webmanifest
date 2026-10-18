@@ -1,7 +1,7 @@
 {
   "name": "Bé Học Toán — Toán Tiểu Học",
   "short_name": "Bé Học Toán",
-  "description": "Trò chơi học toán tiểu học lớp 1–5: học số, cộng trừ, so sánh, nhân chia, phân số, thập phân, phần trăm, đo lường, hình học, toán lời văn.",
+  "description": "Trò chơi học toán mẫu giáo (tiền tiểu học) và tiểu học lớp 1–5: Sẵn sàng vào 1, cộng trừ 0–10, học số, so sánh, nhân chia, phân số, thập phân, phần trăm, đo lường, hình học, toán lời văn. Bé mẫu giáo chưa biết chữ vẫn chơi được vì máy đọc câu hỏi lên và đáp án là hình vẽ.",
   "lang": "vi",
   "dir": "ltr",
   "start_url": "./index.html",

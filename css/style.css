@@ -151,6 +151,7 @@ body {
 .choose-card.boy  { background: linear-gradient(150deg, #ffb74d, #f57c00); }
 .choose-card.girl { background: linear-gradient(150deg, #ffab91, #f4643c); }
 .choose-card.way  { background: linear-gradient(150deg, #ffb74d, #ef6c00); width: 260px; }
+.choose-card.way.preschool { background: linear-gradient(150deg, #aed581, #689f38); }
 .choose-card:active { transform: scale(0.95); }
 .choose-card:hover  { transform: translateY(-4px); }
 @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -223,7 +224,7 @@ body {
 }
 .icon-btn:active { transform: scale(0.9); }
 
-/* ══ Menu mode — 10 thẻ, luôn vừa viewport ══ */
+/* ══ Menu mode — 11 thẻ, luôn vừa viewport ══ */
 .menu-sub {
   text-align: center;
   font-size: clamp(15px, 3vw, 19px);
@@ -240,7 +241,7 @@ body {
 }
 .mode-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
 }
 .mode-card {
@@ -266,6 +267,9 @@ body {
 .mode-lock { font-size: 11px; font-weight: 700; color: var(--muted); min-height: 13px; }
 .mode-card.locked { opacity: 0.55; filter: saturate(0.5); }
 .mode-card.featured { border-color: var(--accent); }
+.mode-card.hidden { display: none; }
+/* Menu mẫu giáo: 6 chế độ → 3 cột × 2 hàng cho bé dễ bấm */
+.mode-grid.grid-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* 4 cột trên mobile dọc */
 @media (max-width: 640px) {
@@ -443,6 +447,75 @@ body {
 .shape-svg { width: clamp(110px, 26vw, 170px); height: auto; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12)); }
 .frac-svg { max-width: 100%; height: auto; }
 .frac-wrap { background: var(--card); border: 5px dashed var(--primary-l); border-radius: 26px; padding: 16px 22px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1); }
+
+/* Tiền tiểu học — đếm chấm */
+.q-dots {
+  font-size: clamp(34px, 8vw, 64px);
+  color: var(--primary);
+  letter-spacing: 0.16em;
+  text-align: center;
+  line-height: 1.35;
+  word-break: break-all;
+  background: var(--card);
+  border: 5px dashed var(--primary-l);
+  border-radius: 26px;
+  padding: 14px 22px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+}
+
+/* Tiền tiểu học — so sánh TO/NHỎ · DÀI/NGẮN · CAO/THẤP (2 ô + dấu ? ở giữa) */
+.q-cmp.viz-row { align-items: flex-end; }
+.cmp-box.viz {
+  width: clamp(96px, 24vw, 150px);
+  min-width: 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.viz-emoji { line-height: 1; }
+.viz-emoji.big { font-size: clamp(40px, 11vw, 66px); }
+.viz-emoji.small { font-size: clamp(20px, 5.5vw, 33px); }
+.hbar {
+  display: block;
+  flex: 0 0 auto;
+  height: 26px;
+  min-width: 14px;
+  background: var(--primary-l);
+  border: 4px solid var(--primary);
+  border-radius: 12px;
+}
+.vbar {
+  display: block;
+  flex: 0 0 auto;
+  width: 40px;
+  background: var(--accent);
+  border: 4px solid var(--primary-d);
+  border-radius: 14px 14px 6px 6px;
+}
+
+/* Nút nghe lại câu hỏi (chỉ hiện với Mẫu giáo) */
+.q-say {
+  font-family: inherit;
+  cursor: pointer;
+  border: 3px solid var(--primary-l);
+  background: var(--card);
+  color: var(--primary-d);
+  font-size: 22px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 6px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease;
+}
+.q-say:active { transform: scale(0.93); }
+.q-say span { font-size: 15px; }
+.gone { display: none !important; }
+/* Đáp án là hình vẽ (Mẫu giáo) — thu nhỏ SVG cho vừa nút */
+.opt-btn .shape-svg { width: clamp(52px, 15vw, 84px); height: auto; }
 
 .q-cmp { display: flex; align-items: center; gap: 14px; }
 .cmp-box {
@@ -726,6 +799,14 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 
   .q-line, .q-word, .q-story, .q-money { padding: 12px 14px; border-width: 4px; }
   .q-emoji-row { padding: 10px 12px; }
+  .q-dots { padding: 10px 12px; border-width: 4px; }
+  .cmp-box.viz { width: clamp(78px, 24vw, 118px); padding: 8px 8px; }
+  .viz-emoji.big { font-size: clamp(34px, 9vw, 52px); }
+  .viz-emoji.small { font-size: clamp(18px, 4.6vw, 26px); }
+  .hbar { height: 20px; border-width: 3px; }
+  .vbar { width: 32px; border-width: 3px; }
+  .q-say { font-size: 19px; padding: 5px 14px; }
+  .q-say span { font-size: 13px; }
   .cmp-box { padding: 8px 16px; min-width: 84px; border-width: 4px; }
   .opt-grid { gap: 10px; }
   .opt-btn { padding: 12px 8px; border-width: 3px; border-radius: 20px; }
@@ -760,7 +841,8 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   .grade-name { font-size: 12px; }
 
   .menu-sub { font-size: 13px; padding: 4px 14px; margin: 0 auto 7px; }
-  .mode-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+  .mode-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
+  .mode-grid.grid-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .mode-card { padding: 8px 4px; border-radius: 14px; gap: 2px; border-width: 2px; }
   .mode-icon { font-size: 26px; }
   .mode-name { font-size: 11px; }
@@ -782,6 +864,12 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   .q-line { font-size: clamp(17px, 4.6vh, 26px); padding: 8px 16px; border-width: 4px; border-radius: 18px; }
   .q-word, .q-story, .q-money { font-size: clamp(15px, 4.2vh, 22px); padding: 8px 16px; border-width: 4px; }
   .q-emoji-row { font-size: clamp(18px, 5vh, 30px); padding: 8px 14px; border-width: 4px; }
+  .q-dots { font-size: clamp(22px, 6vh, 40px); padding: 8px 14px; border-width: 4px; }
+  .cmp-box.viz { width: clamp(84px, 22vh, 130px); padding: 6px 8px; }
+  .viz-emoji.big { font-size: clamp(26px, 8vh, 44px); }
+  .viz-emoji.small { font-size: clamp(14px, 4vh, 22px); }
+  .hbar { height: 18px; border-width: 3px; }
+  .vbar { width: 30px; border-width: 3px; max-height: 92px; }
   .q-big { font-size: clamp(40px, 16vh, 84px); }
   .shape-svg { width: clamp(70px, 24vh, 120px); }
   .cmp-box { font-size: clamp(22px, 8vh, 40px); padding: 6px 16px; min-width: 80px; }

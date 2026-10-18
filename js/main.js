@@ -1,7 +1,7 @@
 const $ = s => document.querySelector(s);
 
 const THEME_KEYS = ["boy", "girl"];
-const WAY_KEYS = ["class", "mode"];
+const WAY_KEYS = ["class", "mode", "preschool"];
 
 function storageGet(key) { try { return sessionStorage.getItem(key); } catch (e) { return null; } }
 function storageSet(key, val) { try { sessionStorage.setItem(key, val); } catch (e) { } }
@@ -25,6 +25,7 @@ function saveStore() {
 let playCtx = null;   // { mode, grade }
 
 function show(id) {
+  if (id !== "screen-play") Voice.stop();   /* rời màn chơi → tắt tiếng đọc */
   document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === id));
   fitScreen(document.getElementById(id));
   requestAnimationFrame(() => fitScreen(document.getElementById(id)));
@@ -256,34 +257,61 @@ function applyTheme(theme) {
    ============================================================ */
 function buildMenu() {
   const sub = $("#menu-sub");
+  const grid = $("#mode-grid");
+  const pk = store.way === "preschool";
+  if (grid) grid.classList.toggle("grid-6", pk);
+
+  document.querySelectorAll(".mode-card").forEach(card => {
+    const mode = card.dataset.mode;
+    const m = MODES[mode];
+    const lock = card.querySelector(".mode-lock");
+    /* Mẫu giáo: chỉ hiện 6 chế độ phù hợp, xếp lại theo lộ trình học */
+    const visible = !pk || PRESCHOOL_MODES.indexOf(mode) >= 0;
+    card.classList.toggle("hidden", !visible);
+    card.style.order = pk ? String(PRESCHOOL_MODES.indexOf(mode)) : "";
+    /* Mẫu giáo: tên + biểu tượng riêng cho phụ huynh dễ hiểu */
+    const info = (pk && PRESCHOOL_INFO[mode]) ? PRESCHOOL_INFO[mode] : m;
+    const icoEl = card.querySelector(".mode-icon");
+    const nameEl = card.querySelector(".mode-name");
+    if (icoEl && info) icoEl.textContent = info.icon;
+    if (nameEl && info) nameEl.textContent = info.name;
+
+    const locked = store.way === "class" && m && store.grade < m.min;
+    card.classList.toggle("locked", !!locked);
+    if (lock) lock.textContent = locked ? `🔒 Từ lớp ${m.min}` : "";
+  });
+
   if (store.way === "class") {
     if (sub) sub.textContent = `🎓 Lớp ${store.grade} — ${GRADES[store.grade]}`;
-    document.querySelectorAll(".mode-card").forEach(card => {
-      const m = MODES[card.dataset.mode];
-      const lock = card.querySelector(".mode-lock");
-      const locked = m && store.grade < m.min;
-      card.classList.toggle("locked", !!locked);
-      if (lock) lock.textContent = locked ? `🔒 Từ lớp ${m.min}` : "";
-    });
+  } else if (pk) {
+    if (sub) sub.textContent = "🌟 Mẫu giáo — bé nghe rồi chọn hình";
   } else {
     if (sub) sub.textContent = "🎮 Chọn mức khi chơi";
-    document.querySelectorAll(".mode-card").forEach(card => {
-      card.classList.remove("locked");
-      const lock = card.querySelector(".mode-lock");
-      if (lock) lock.textContent = "";
-    });
   }
 }
 
+/* Nút 🔊 trên thanh chơi: chỉ hiện khi bé học Mẫu giáo (máy đọc câu hỏi) */
+function updateVoiceBtn(grade) {
+  const b = $("#btn-voice");
+  if (!b) return;
+  const pre = grade === 0;
+  b.classList.toggle("gone", !pre);
+  b.textContent = Voice.isOn() ? "🔊" : "🔇";
+  b.title = Voice.isOn() ? "Tắt đọc câu hỏi" : "Bật đọc câu hỏi";
+}
+
 /* Vào chơi — luôn clamp grade ≥ mức mở khoá của mode (mở nhẹ, không rơi vào nhánh khó).
+   Riêng Mẫu giáo (grade 0) chạy đúng mức 0 — không áp mức mở khoá của lớp.
    store.grade KHÔNG đổi — chỉ lớp bé chọn ở màn Chọn Lớp mới ghi. */
 function startMode(mode, grade) {
   const m = MODES[mode];
-  const g = Math.max(grade, m.min);
+  const g = grade === 0 ? 0 : Math.max(grade, m.min);
   playCtx = { mode, grade: g };
   saveStore();
+  const info = (g === 0 && PRESCHOOL_INFO[mode]) ? PRESCHOOL_INFO[mode] : m;
+  updateVoiceBtn(g);
   show("screen-play");
-  Game.start(mode, g, m.name, m.icon);
+  Game.start(mode, g, info.name, info.icon);
 }
 
 function exitToMenu() {
@@ -372,7 +400,10 @@ function init() {
     card.onclick = () => {
       Sfx.click();
       const mode = card.dataset.mode;
-      if (store.way === "class") {
+      if (store.way === "preschool") {
+        /* Mẫu giáo: vào chơi ngay ở mức 0–10, không cần chọn mức */
+        startMode(mode, 0);
+      } else if (store.way === "class") {
         /* lớp thấp → mode khoá: vẫn cho chơi ở mức nhỏ nhất của mode */
         const m = MODES[mode];
         startMode(mode, store.grade < m.min ? m.min : store.grade);
@@ -403,6 +434,15 @@ function init() {
   };
   $("#btn-continue").onclick = () => { Sfx.click(); closeSummary(); Game.resume(); };
   $("#btn-exit").onclick = () => { Sfx.click(); closeSummary(); exitToMenu(); };
+
+  /* 🔊 Bật / tắt đọc câu hỏi (dành cho bé Mẫu giáo) */
+  const voiceBtn = $("#btn-voice");
+  if (voiceBtn) voiceBtn.onclick = () => {
+    Sfx.click();
+    const on = Voice.toggle();
+    updateVoiceBtn(playCtx ? playCtx.grade : -1);
+    if (on) Voice.speak("Đã bật đọc câu hỏi");
+  };
 
   /* Popup donate — giữ nguyên behocchu */
   const donate = $("#donate-popup");

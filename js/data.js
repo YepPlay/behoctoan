@@ -38,20 +38,28 @@ function pickIdx(strs, correct) {
   const s = shuffle(set);
   return { choices: s, answer: s.indexOf(correct) };
 }
-/* Đáp án số + 3 lựa chọn nhiễu gần đúng */
-function numChoices(ans, min) {
+/* Đáp án số + 3 lựa chọn nhiễu gần đúng (hi = giới hạn trên, vd 10 cho tiền tiểu học) */
+function numChoices(ans, min, hi) {
   min = min == null ? 0 : min;
+  hi = hi == null ? Infinity : hi;
   const set = [ans];
   const offs = shuffle([1, -1, 2, -2, 5, -5, 10, -10, 100, -100, Math.max(3, Math.round(Math.abs(ans) * 0.1))]);
   for (const o of offs) {
     if (set.length >= 4) break;
     const c = ans + o;
-    if (c === ans || c < min || !Number.isFinite(c)) continue;
+    if (c === ans || c < min || c > hi || !Number.isFinite(c)) continue;
     if (Number.isInteger(ans) && !Number.isInteger(c)) continue;
     if (set.indexOf(c) < 0) set.push(c);
   }
   let k = 1;
-  while (set.length < 4) { if (ans + k >= min && set.indexOf(ans + k) < 0) set.push(ans + k); k++; }
+  while (set.length < 4 && k < 60) {
+    for (const s of [ans + k, ans - k]) {
+      if (s >= min && s <= hi && set.indexOf(s) < 0 &&
+          (!Number.isInteger(ans) || Number.isInteger(s))) set.push(s);
+      if (set.length >= 4) break;
+    }
+    k++;
+  }
   return pickIdx(set.map(fmtN), fmtN(ans));
 }
 /* Đáp án chuỗi + 3 chuỗi khác trong pool */
@@ -61,9 +69,24 @@ function strChoices(correct, pool) {
   for (const o of others) { if (set.length >= 4) break; set.push(o); }
   return pickIdx(set, correct);
 }
-/* Câu hỏi có/không đáp án số — dùng cho gợi ý */
-function makeQ(html, choicesObj, prompt) {
-  return { html: html || "", prompt: prompt || "", choices: choicesObj.choices, answer: choicesObj.answer };
+/* Câu hỏi
+   · `say`   = câu chữ dành cho bé tiền tiểu học (dự phòng + kiểm tra tự động)
+   · `voice` = danh sách key file đọc trong assets/voice (ghép lại thành câu),
+               xem js/voice-lines.js và tools/gen-voice.js */
+function makeQ(html, choicesObj, prompt, say, voice) {
+  return {
+    html: html || "",
+    prompt: prompt || "",
+    say: say || prompt || "",
+    voice: voice || null,
+    choices: choicesObj.choices,
+    answer: choicesObj.answer,
+  };
+}
+
+/* key đọc của một phép tính trong 0–10: "ba cộng năm bằng bao nhiêu?" */
+function calcVoice(a, plus, b) {
+  return ["n" + a, plus ? "cong" : "tru", "n" + b, "hoiCalc"];
 }
 
 /* ---------- Số đọc bằng chữ (0–999, an toàn SGK) ---------- */
@@ -131,16 +154,31 @@ function fracStr(k, n) { const g = gcd(k, n); return (k / g) + "/" + (n / g); }
 
 /* ---------- CẤU HÌNH ---------- */
 const MODES = {
-  num:     { name: "Học Số",         icon: "🔢", min: 1 },
-  calc:    { name: "Cộng & Trừ",     icon: "➕", min: 1 },
-  cmp:     { name: "So Sánh",        icon: "⚖️", min: 1 },
+  ready:   { name: "Sẵn Sàng Vào 1", icon: "🎒", min: 0 },
+  num:     { name: "Học Số",         icon: "🔢", min: 0 },
+  calc:    { name: "Cộng & Trừ",     icon: "➕", min: 0 },
+  cmp:     { name: "So Sánh",        icon: "⚖️", min: 0 },
   mul:     { name: "Nhân & Chia",     icon: "✖️", min: 2 },
   frac:    { name: "Phân Số",        icon: "🍕", min: 3 },
   dec:     { name: "Số Thập Phân",   icon: "💰", min: 4 },
   pct:     { name: "Phần Trăm",      icon: "🏷️", min: 5 },
   measure: { name: "Đo & Đo Lường",  icon: "📏", min: 2 },
-  shape:   { name: "Hình Học",       icon: "🔷", min: 1 },
+  shape:   { name: "Hình Học",       icon: "🔷", min: 0 },
   story:   { name: "Toán Lời Văn",   icon: "📖", min: 1 },
+};
+
+/* Các chế độ hiện trong menu MẪU GIÁO (tiền tiểu học) — đều chạy ở mức 0
+   (bé chưa đọc được → mọi câu đều có `say` để đọc lên + đáp án là hình/số/dấu) */
+const PRESCHOOL_MODES = ["num", "calc", "cmp", "measure", "shape", "ready"];
+
+/* Tên & biểu tượng riêng cho menu MẪU GIÁO (thân thiện với phụ huynh) */
+const PRESCHOOL_INFO = {
+  num:     { icon: "🔢", name: "Nhận Biết Số" },
+  calc:    { icon: "➕", name: "Cộng Trừ 0–10" },
+  cmp:     { icon: "⚖️", name: "So Sánh Số" },
+  measure: { icon: "📏", name: "To · Dài · Cao" },
+  shape:   { icon: "🔷", name: "Hình Dạng" },
+  ready:   { icon: "🎒", name: "Tư Duy & Quy Luật" },
 };
 
 const GRADES = {
@@ -190,6 +228,29 @@ const QUESTIONS = {};
 
 /* ---------- 1. HỌC SỐ ---------- */
 QUESTIONS.num = function (g) {
+  /* Mẫu giáo (tiền tiểu học): nhận biết số 0–10, đếm hình, số kế tiếp */
+  if (g === 0) {
+    const k0 = pick(["count", "dots", "seq", "after"]);
+    if (k0 === "count") {
+      const n = ri(1, 10);
+      const em = pick(["🍎", "🍬", "⚽", "🌸", "🍪", "⭐"]);
+      return makeQ(`<div class="q-emoji-row">${em.repeat(n)}</div>`, numChoices(n, 0, 12),
+        "Có bao nhiêu hình?", "Bé đếm xem có bao nhiêu hình nào!", ["demHinh"]);
+    }
+    if (k0 === "dots") {
+      const n = ri(1, 9);
+      return makeQ(`<div class="q-dots">${"●".repeat(n)}</div>`, numChoices(n, 0, 11),
+        "Có bao nhiêu chấm?", "Bé đếm xem có bao nhiêu chấm tròn?", ["demCham"]);
+    }
+    if (k0 === "seq") {
+      const a = ri(1, 4);
+      return makeQ(`<div class="q-line">${a} · ${a + 1} · ?</div>`, numChoices(a + 1, 0, 10),
+        "Số tiếp theo là:", "Bé tìm số tiếp theo nhé!", ["soTiep"]);
+    }
+    const a = ri(1, 9);
+    return makeQ(`<div class="q-big">${a}</div>`, numChoices(a + 1, 0, 10),
+      "Số nào đứng ngay sau số này?", `Số nào đứng ngay sau số ${vn2(a)}?`, ["after" + a]);
+  }
   const kinds = g === 1 ? ["count", "words", "seq", "even"]
     : g === 2 ? ["words", "place", "seq", "even"]
     : g === 3 ? ["place", "round", "seq"]
@@ -257,6 +318,15 @@ QUESTIONS.num = function (g) {
 
 /* ---------- 2. CỘNG & TRỪ ---------- */
 QUESTIONS.calc = function (g) {
+  /* Mẫu giáo (tiền tiểu học): cộng/trừ trong phạm vi 0–10 */
+  if (g === 0) {
+    const plus = Math.random() < 0.55;
+    let a, b, ans;
+    if (plus) { a = ri(1, 9); b = ri(1, 10 - a); ans = a + b; }
+    else { a = ri(2, 10); b = ri(1, a); ans = a - b; }
+    return makeQ(`<div class="q-line">${a} ${plus ? "+" : "−"} ${b} = ?</div>`, numChoices(ans, 0, 10),
+      "", `${vn2(a)} ${plus ? "cộng" : "trừ"} ${vn2(b)} bằng bao nhiêu?`, calcVoice(a, plus, b));
+  }
   const three = g >= 4 && Math.random() < 0.35;
   if (three) {
     const a = ri(100, g === 5 ? 50000 : 5000);
@@ -291,6 +361,17 @@ QUESTIONS.calc = function (g) {
 
 /* ---------- 3. SO SÁNH ---------- */
 QUESTIONS.cmp = function (g) {
+  /* Mẫu giáo: so sánh nhóm hình — dùng DẤU < = > (bé chưa đọc được) */
+  if (g === 0) {
+    const em = pick(["🍎", "🍬", "⚽", "🌸", "🍪", "⭐"]);
+    const k1 = ri(1, 6), k2 = Math.random() < 0.25 ? k1 : ri(1, 6);
+    const sym = k1 < k2 ? "<" : k1 > k2 ? ">" : "=";
+    return makeQ(
+      `<div class="q-cmp"><span class="cmp-box emoji">${em.repeat(k1)}</span><span class="cmp-op">?</span><span class="cmp-box emoji">${em.repeat(k2)}</span></div>`,
+      pickIdx(["<", "=", ">"], sym),
+      "Điền dấu so sánh:",
+      "Bên nào nhiều hơn? Bé chọn dấu đúng nhé!", ["nhieuHon"]);
+  }
   const SYMS = ["<", "=", ">"];
   function q(lText, rText, lv, rv) {
     const sym = lv < rv ? "<" : lv > rv ? ">" : "=";
@@ -439,6 +520,38 @@ QUESTIONS.pct = function (g) {
 
 /* ---------- 8. ĐO & ĐO LƯỜNG ---------- */
 QUESTIONS.measure = function (g) {
+  /* Mẫu giáo: so sánh kích thước bằng mắt — TO/NHỎ, DÀI/NGẮN, CAO/THẤP (chọn dấu < = >) */
+  if (g === 0) {
+    const k = pick(["size", "long", "tall"]);
+    const S = (lText, rText, lv, rv, say, voice) => {
+      const sym = lv < rv ? "<" : lv > rv ? ">" : "=";
+      return makeQ(
+        `<div class="q-cmp viz-row"><span class="cmp-box viz">${lText}</span><span class="cmp-op">?</span><span class="cmp-box viz">${rText}</span></div>`,
+        pickIdx(["<", "=", ">"], sym), "Điền dấu so sánh:", say, voice);
+    };
+    if (k === "size") {
+      /* cùng một hình, hai cỡ khác nhau → mắt bé thấy rõ (cỡ do CSS co giãn theo màn hình) */
+      const em = pick(READY_EMO);
+      const leftBig = Math.random() < 0.5;
+      return S(`<span class="viz-emoji ${leftBig ? "big" : "small"}">${em}</span>`,
+        `<span class="viz-emoji ${leftBig ? "small" : "big"}">${em}</span>`, leftBig ? 1 : 0, leftBig ? 0 : 1,
+        "Bên nào to hơn? Bé chọn dấu đúng nhé!", ["toHon"]);
+    }
+    if (k === "long") {
+      const w1 = ri(45, 100);
+      const eq = Math.random() < 0.2;
+      const w2 = eq ? w1 : (w1 >= 80 ? ri(30, w1 - 25) : ri(w1 + 25, 100));
+      return S(`<span class="hbar" style="width:${w1}%"></span>`,
+        `<span class="hbar" style="width:${w2}%"></span>`, w1, w2,
+        "Bên nào dài hơn? Bé chọn dấu đúng nhé!", ["daiHon"]);
+    }
+    const h1 = ri(40, 104);
+    const eq2 = Math.random() < 0.2;
+    const h2 = eq2 ? h1 : (h1 >= 78 ? ri(26, h1 - 22) : ri(h1 + 22, 116));
+    return S(`<span class="vbar" style="height:${h1}px"></span>`,
+      `<span class="vbar" style="height:${h2}px"></span>`, h1, h2,
+      "Bên nào cao hơn? Bé chọn dấu đúng nhé!", ["caoHon"]);
+  }
   const bank = {
     2: [["m", "cm", 100], ["giờ", "phút", 60], ["kg", "g", 1000]],
     3: [["m", "cm", 100], ["cm", "mm", 10], ["kg", "g", 1000], ["giờ", "phút", 60], ["phút", "giây", 60], ["km", "m", 1000]],
@@ -458,7 +571,25 @@ QUESTIONS.measure = function (g) {
 };
 
 /* ---------- 9. HÌNH HỌC ---------- */
+/* key file đọc của từng hình — bé nghe tên hình rồi chọn hình vẽ */
+const SHAPE_VOICE = {
+  "tròn": "hinhTron",
+  "vuông": "hinhVuong",
+  "tam giác": "hinhTamGiac",
+  "ngôi sao": "hinhNgoiSao",
+};
 QUESTIONS.shape = function (g) {
+  /* Mẫu giáo: nghe tên hình → chọn ĐÚNG hình đó (bé chưa đọc được nên đáp án là hình vẽ) */
+  if (g === 0) {
+    const pool = Object.keys(SHAPE_VOICE);
+    const want = pick(pool);
+    const label = want === "ngôi sao" ? "ngôi sao" : "hình " + want;
+    const names = shuffle(pool).slice(0, 3);
+    if (names.indexOf(want) < 0) names[0] = want;
+    const opts = shuffle(names);
+    return makeQ("", { choices: opts.map(svgShape), answer: opts.indexOf(want) },
+      `Đâu là ${label}?`, `Bé hãy tìm ${label} nào!`, [SHAPE_VOICE[want]]);
+  }
   if (g <= 2 && Math.random() < 0.6) {
     const name = pick(SHAPE_NAMES);
     return makeQ(`<div class="q-shape">${svgShape(name)}</div>`,
@@ -531,4 +662,67 @@ QUESTIONS.story = function (g) {
   const show = n => (unit === "đ" ? fmtN(n) + "đ" : fmtN(n));
   return makeQ(`<div class="q-story">${tpl.t(v)}</div>`,
     pickIdx([show(ans), show(Math.max(0, ans - ri(2, 9))), show(ans + ri(2, 9)), show(Math.max(0, ans - ri(10, 20)))].filter((x, i, arr) => arr.indexOf(x) === i), show(ans)));
+};
+
+/* ---------- 11. SẴN SÀNG VÀO LỚP 1 (Mẫu giáo — tiền tiểu học) ----------
+   Tổng hợp: đếm · cộng/trừ 0–10 · so sánh nhiều/ít · to/nhỏ · dài/ngắn ·
+   cao/thấp · tìm quy luật · phân loại đồ vật */
+const READY_CATS = [
+  { line: "phanLoaiAn", prompt: "Đồ nào ăn được?",     pool: ["🍎", "🍌", "🥕", "🍰", "🍬", "🥛"] },
+  { line: "phanLoaiMac", prompt: "Đồ nào mặc được?",    pool: ["👕", "🧦", "👟", "🎩", "👗", "🧤"] },
+  { line: "phanLoaiChoi", prompt: "Đồ nào là đồ chơi?",   pool: ["🧸", "🪁", "🎮", "⚽", "🪀", "🤖"] },
+  { line: "phanLoaiDi", prompt: "Đồ nào đi lại được?", pool: ["🚗", "🚌", "✈️", "🚑", "🚒", "🚂"] },
+];
+const READY_ALL = READY_CATS.reduce((acc, c) => acc.concat(c.pool), []);
+const READY_PAT = ["🔴", "🔵", "🟡", "🟢", "⭐", "🌸", "🍎", "🐱"];
+const READY_EMO = ["🍎", "🍬", "⚽", "🌸", "🍪", "⭐"];
+const READY_SYM = ["<", "=", ">"];
+
+QUESTIONS.ready = function (g) {
+  const big = g >= 2;                     /* bé lớn chơi lại → phạm vi rộng hơn */
+  const cap = big ? 20 : 10;
+  const k = pick(["count", "calc", "many", "pattern", "classify"]);
+
+  if (k === "count") {
+    const n = ri(3, cap);
+    const em = pick(READY_EMO);
+    return makeQ(`<div class="q-emoji-row">${em.repeat(n)}</div>`, numChoices(n, 0, cap + 2),
+      "Có bao nhiêu hình?", "Bé đếm xem có bao nhiêu hình nào!", ["demHinh"]);
+  }
+  if (k === "calc") {
+    /* cộng/trừ trong phạm vi 0–10 (0–20 với bé lớn) */
+    const plus = Math.random() < 0.55;
+    const a = plus ? ri(1, cap - 1) : ri(2, cap);
+    const b = plus ? ri(1, cap - a) : ri(1, a);
+    const ans = plus ? a + b : a - b;
+    return makeQ(`<div class="q-line">${a} ${plus ? "+" : "−"} ${b} = ?</div>`, numChoices(ans, 0, cap),
+      "", `${vn2(a)} ${plus ? "cộng" : "trừ"} ${vn2(b)} bằng bao nhiêu?`,
+      cap <= 10 ? calcVoice(a, plus, b) : null);
+  }
+  if (k === "many") {
+    /* so sánh số lượng 2 nhóm — trả lời bằng dấu < = > */
+    const em = pick(READY_EMO);
+    const k1 = ri(1, 7), k2 = Math.random() < 0.25 ? k1 : ri(1, 7);
+    const sym = k1 < k2 ? "<" : k1 > k2 ? ">" : "=";
+    return makeQ(
+      `<div class="q-cmp"><span class="cmp-box emoji">${em.repeat(k1)}</span><span class="cmp-op">?</span><span class="cmp-box emoji">${em.repeat(k2)}</span></div>`,
+      pickIdx(READY_SYM, sym),
+      "Điền dấu so sánh:",
+      "Bên nào nhiều hơn? Bé chọn dấu đúng nhé!", ["nhieuHon"]);
+  }
+  if (k === "pattern") {
+    const s = shuffle(READY_PAT);
+    const a = s[0], b = s[1], c = s[2];
+    const type = pick(big ? ["ab", "aa", "aab"] : ["ab", "aa"]);
+    const seq = type === "ab" ? [a, b, a, b, a] : type === "aa" ? [a, a, b, b, a] : [a, a, b, a, a];
+    const ans = type === "aa" ? a : b;
+    return makeQ(`<div class="q-emoji-row">${seq.join(" ")} ❔</div>`,
+      pickIdx([a, b, c], ans), "Tiếp theo là hình gì?", "Hình nào tiếp theo trong dãy?", ["quyLuat"]);
+  }
+  /* classify — đồ vật nào đúng nhóm */
+  const cat = pick(READY_CATS);
+  const correct = pick(cat.pool);
+  const others = shuffle(READY_ALL.filter(x => cat.pool.indexOf(x) < 0)).slice(0, 8);
+  return makeQ("", strChoices(correct, others.concat(cat.pool)), cat.prompt, cat.prompt,
+    cat.line ? [cat.line] : null);
 };
