@@ -181,11 +181,6 @@ const UI = {
     if (o.praise !== false) UI.praise(o.emoji);
   },
 
-  setPlayTitle(text) {
-    const el = $("#play-progress");
-    if (el) el.innerHTML = `<span class="prog-text">${text}</span>`;
-  },
-  hideProgress() { const el = $("#play-progress"); if (el) el.innerHTML = ""; },
 };
 
 /* ============================================================

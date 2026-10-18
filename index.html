@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Bé Học Toán">
   <meta name="application-name" content="Bé Học Toán">
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; worker-src 'self'; manifest-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Bé Học Toán — Toán Tiểu Học</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/icon-32.png">
@@ -164,7 +164,6 @@
   <section id="screen-play" class="screen">
     <header class="screen-head play-head">
       <button id="btn-back" class="icon-btn" title="Về menu">⬅️</button>
-      <div class="play-progress" id="play-progress"></div>
       <button id="btn-voice" class="icon-btn gone" title="Bật/tắt đọc câu hỏi">🔊</button>
       <button class="donate-btn" title="Ủng hộ tác giả"><span class="donate-ico">💰</span><span class="donate-txt">Ủng&nbsp;Hộ</span></button>
     </header>

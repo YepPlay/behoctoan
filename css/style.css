@@ -280,16 +280,8 @@ body {
   .mode-lock { font-size: 10px; min-height: 12px; }
 }
 
-.play-progress { flex: 1; display: flex; justify-content: center; }
-.prog-text {
-  font-size: clamp(15px, 3vw, 20px);
-  font-weight: 800;
-  color: var(--primary-d);
-  background: var(--card);
-  border-radius: 16px;
-  padding: 6px 16px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-}
+/* Thanh trên màn chơi: chỉ còn nút ⬅️ (buộc sang trái) + nút phải */
+.play-head #btn-back { margin-right: auto; }
 
 /* ══ Nút Ủng hộ — giữ nguyên behocchu ══ */
 .donate-btn {
@@ -847,8 +839,6 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   .mode-icon { font-size: 26px; }
   .mode-name { font-size: 11px; }
   .mode-lock { font-size: 9px; min-height: 10px; }
-
-  .prog-text { font-size: 14px; padding: 4px 12px; }
 
   #play-area {
     display: flex;

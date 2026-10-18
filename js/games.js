@@ -59,8 +59,6 @@ const Game = (() => {
       if (state.firstSpeak) { state.firstSpeak = false; sayQuestion(); }
       else sayTimer = setTimeout(sayQuestion, 260);
     }
-
-    UI.setPlayTitle(`${state.icon} ${state.name}`);
   }
 
   /* ---------- Trả lời ----------
@@ -103,7 +101,6 @@ const Game = (() => {
       Voice.unlock();   /* xin quyền phát tiếng ngay trong cú bấm (iPhone/iPad) */
       Voice.warm();     /* nạp trước các file đọc để phát tức thì */
     }
-    UI.hideProgress();
     render();
   }
 
