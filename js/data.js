@@ -121,7 +121,7 @@ function vnWords(n) {
 
 /* ---------- Hình SVG ---------- */
 function svgShape(name, size) {
-  const S = size || 120;
+  const S = +size > 0 ? +size : 120;
   const f = "var(--primary-l)", st = "var(--primary)";
   const open = `<svg class="shape-svg" width="${S}" height="${S}" viewBox="0 0 100 100">`;
   const w = `stroke="${st}" stroke-width="5" fill="${f}"`;
@@ -135,11 +135,21 @@ function svgShape(name, size) {
     case "lục giác": return open + `<polygon points="28,8 72,8 95,50 72,92 28,92 5,50" ${w}/></svg>`;
     case "thang": return open + `<polygon points="25,12 75,12 95,88 5,88" ${w}/></svg>`;
     case "hình bình hành": return open + `<polygon points="25,15 95,15 75,85 5,85" ${w}/></svg>`;
+    case "bầu dục": return open + `<ellipse cx="50" cy="50" rx="46" ry="30" ${w}/></svg>`;
+    case "thoi": return open + `<polygon points="50,5 95,50 50,95 5,50" ${w}/></svg>`;
+    case "bán nguyệt": return open + `<path d="M6 70 A 44 44 0 0 1 94 70 Z" ${w}/></svg>`;
+    case "bát giác": return open + `<polygon points="31,6 69,6 94,31 94,69 69,94 31,94 6,69 6,31" ${w}/></svg>`;
+    case "trái tim": return open + `<path d="M50 90 C 22 68, 6 48, 12 30 C 18 14, 40 14, 50 30 C 60 14, 82 14, 88 30 C 94 48, 78 68, 50 90 Z" ${w}/></svg>`;
     default: return open + `<circle cx="50" cy="50" r="44" ${w}/></svg>`;
   }
 }
-const SHAPE_NAMES = ["tròn", "vuông", "chữ nhật", "tam giác", "ngôi sao", "ngũ giác", "lục giác", "thang", "hình bình hành"];
-const SHAPE_SIDES = { "tròn": 0, "vuông": 4, "chữ nhật": 4, "tam giác": 3, "ngôi sao": 10, "ngũ giác": 5, "lục giác": 6, "thang": 4, "hình bình hành": 4 };
+const SHAPE_NAMES = ["tròn", "vuông", "chữ nhật", "tam giác", "ngôi sao", "ngũ giác", "lục giác", "bát giác", "thang", "hình bình hành", "bầu dục", "thoi", "bán nguyệt", "trái tim"];
+const SHAPE_SIDES = { "tròn": 0, "vuông": 4, "chữ nhật": 4, "tam giác": 3, "ngôi sao": 10, "ngũ giác": 5, "lục giác": 6, "bát giác": 8, "thang": 4, "hình bình hành": 4, "bầu dục": 0, "thoi": 4, "bán nguyệt": 0, "trái tim": 0 };
+/* Tên hiển thị/đọc của hình: "hình tròn", "hình chữ nhật"… ("ngôi sao" đã đủ nghĩa) */
+function shapeLabel(name) {
+  if (name === "ngôi sao") return "ngôi sao";
+  return name.indexOf("hình ") === 0 ? name : "hình " + name;
+}
 
 /* Phân số: hình k/ng chia ô */
 function fracSvg(k, n) {
@@ -576,26 +586,35 @@ QUESTIONS.measure = function (g) {
 const SHAPE_VOICE = {
   "tròn": "hinhTron",
   "vuông": "hinhVuong",
+  "chữ nhật": "hinhChuNhat",
   "tam giác": "hinhTamGiac",
   "ngôi sao": "hinhNgoiSao",
+  "ngũ giác": "hinhNguGiac",
+  "lục giác": "hinhLucGiac",
+  "bát giác": "hinhBatGiac",
+  "thang": "hinhThang",
+  "bầu dục": "hinhBauDu",
+  "thoi": "hinhThoi",
+  "bán nguyệt": "hinhBanNguyet",
+  "trái tim": "hinhTraiTim",
 };
 QUESTIONS.shape = function (g) {
   /* Mẫu giáo: nghe tên hình → chọn ĐÚNG hình đó (bé chưa đọc được nên đáp án là hình vẽ) */
   if (g === 0) {
     const pool = Object.keys(SHAPE_VOICE);
     const want = pick(pool);
-    const label = want === "ngôi sao" ? "ngôi sao" : "hình " + want;
+    const label = shapeLabel(want);
     const names = shuffle(pool).slice(0, 3);
     if (names.indexOf(want) < 0) names[0] = want;
     const opts = shuffle(names);
-    return makeQ("", { choices: opts.map(svgShape), answer: opts.indexOf(want) },
+    return makeQ("", { choices: opts.map(n => svgShape(n)), answer: opts.indexOf(want) },
       `Đâu là ${label}?`, `Bé hãy tìm ${label} nào!`, [SHAPE_VOICE[want]]);
   }
   if (g <= 2 && Math.random() < 0.6) {
     const name = pick(SHAPE_NAMES);
+    const label = shapeLabel(name);
     return makeQ(`<div class="q-shape">${svgShape(name)}</div>`,
-      strChoices(name === "tròn" ? "hình tròn" : name === "thang" ? "hình thang" : "hình " + name,
-        ["hình tròn", "hình vuông", "hình chữ nhật", "hình tam giác", "ngôi sao", "hình ngũ giác", "hình lục giác", "hình thang"]),
+      strChoices(label, SHAPE_NAMES.map(shapeLabel)),
       "Đây là hình gì?");
   }
   if (g <= 3) {

@@ -36,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   let code = ["js/voice-lines.js", "js/data.js", "js/audio.js", "js/voice.js", "js/games.js", "js/main.js"]
     .map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n;\n");
   code += `
-;window.__t = { QUESTIONS: QUESTIONS, Game: Game, MODES: MODES, Voice: Voice };
+;window.__t = { QUESTIONS: QUESTIONS, Game: Game, MODES: MODES, Voice: Voice, SHAPE_VOICE: SHAPE_VOICE };
 Object.defineProperty(window, "__playCtx", { get: function () { return playCtx; } });
 window.init = init;
 `;
@@ -267,6 +267,20 @@ window.init = init;
     } catch (e) { err = e; }
     ok(!err, `render ${mode} (mẫu giáo)${err ? " — LỖI: " + err.message : ""}`);
   }
+
+  /* Hình Dạng Mẫu giáo: đủ nhiều hình để random phong phú */
+  ok(Object.keys(T.SHAPE_VOICE).length >= 10,
+    `Hình Dạng mẫu giáo có ${Object.keys(T.SHAPE_VOICE).length} hình (trước đây chỉ 4)`);
+  const shapeSeen = new Set();
+  let shapeBad = 0;
+  for (let i = 0; i < 60; i++) {
+    const sq = T.QUESTIONS.shape(0);
+    if (sq.voice && sq.voice[0]) shapeSeen.add(sq.voice[0]);
+    if (sq.choices.length !== 3) shapeBad++;   /* mẫu giáo: 3 hình to dễ bấm */
+    if (String(sq.choices[sq.answer]).indexOf("shape-svg") < 0) shapeBad++;
+  }
+  ok(shapeBad === 0, "Hình Dạng mẫu giáo: đáp án luôn là 1 trong 3 hình vẽ");
+  ok(shapeSeen.size >= 10, `Random phong phú — ${shapeSeen.size} hình khác nhau trong 60 câu`);
 
   console.log("\n[8] Luồng 📘 BẢNG & CÔNG THỨC (tra cứu — không tính điểm)");
   document.querySelector("#btn-back").click();   /* chưa trả lời → về thẳng menu */

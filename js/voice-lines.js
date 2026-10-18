@@ -57,8 +57,17 @@ const VOICE_LINES = {
   /* —— Hình dạng (nghe tên hình → chọn hình vẽ) —— */
   hinhTron: "Bé hãy tìm hình tròn nào!",
   hinhVuong: "Bé hãy tìm hình vuông nào!",
+  hinhChuNhat: "Bé hãy tìm hình chữ nhật nào!",
   hinhTamGiac: "Bé hãy tìm hình tam giác nào!",
   hinhNgoiSao: "Bé hãy tìm ngôi sao nào!",
+  hinhNguGiac: "Bé hãy tìm hình ngũ giác nào!",
+  hinhLucGiac: "Bé hãy tìm hình lục giác nào!",
+  hinhBatGiac: "Bé hãy tìm hình bát giác nào!",
+  hinhThang: "Bé hãy tìm hình thang nào!",
+  hinhBauDu: "Bé hãy tìm hình bầu dục nào!",
+  hinhThoi: "Bé hãy tìm hình thoi nào!",
+  hinhBanNguyet: "Bé hãy tìm hình bán nguyệt nào!",
+  hinhTraiTim: "Bé hãy tìm hình trái tim nào!",
 
   /* —— Khen / nhắc bé —— */
   gioiQua: "Giỏi quá!",

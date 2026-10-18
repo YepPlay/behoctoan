@@ -1,4 +1,4 @@
-const CACHE = "vl-toan-7893ae1c62";
+const CACHE = "vl-toan-95140d5adb";
 const ASSETS = [
   "./index.html",
   "./manifest.webmanifest",
@@ -23,8 +23,17 @@ const ASSETS = [
   "./assets/voice/demCham.mp3",
   "./assets/voice/demHinh.mp3",
   "./assets/voice/gioiQua.mp3",
+  "./assets/voice/hinhBanNguyet.mp3",
+  "./assets/voice/hinhBatGiac.mp3",
+  "./assets/voice/hinhBauDu.mp3",
+  "./assets/voice/hinhChuNhat.mp3",
+  "./assets/voice/hinhLucGiac.mp3",
   "./assets/voice/hinhNgoiSao.mp3",
+  "./assets/voice/hinhNguGiac.mp3",
   "./assets/voice/hinhTamGiac.mp3",
+  "./assets/voice/hinhThang.mp3",
+  "./assets/voice/hinhThoi.mp3",
+  "./assets/voice/hinhTraiTim.mp3",
   "./assets/voice/hinhTron.mp3",
   "./assets/voice/hinhVuong.mp3",
   "./assets/voice/hoiCalc.mp3",

@@ -28,8 +28,8 @@ Chọn Bé (Trai/Gái)
         🎮 THEO CHẾ ĐỘ  → Menu 11 chế độ → Chọn mức Dễ/Vừa/Khó → Chơi
         🌟 MẪU GIÁO    → Menu riêng 6 chế độ (Nhận Biết Số · Cộng Trừ 0–10 ·
                           So Sánh Số · To · Dài · Cao · Hình Dạng · Tư Duy & Quy Luật)
-        📘 BẢNG & CÔNG THỨC → Tra cứu 2 tab (xem & học thuộc, KHÔNG tính điểm):
-                          ✖️ Bảng Cửu Chương — bảng 2→9 đủ 10 dòng (📖 Học Thuộc) +
+        📘 BẢNG & CÔNG THỨC → Tra cứu 3 tab (xem & học thuộc, KHÔNG tính điểm):
+                          ✖️ Bảng Nhân & ➗ Bảng Chia — bảng 2→9, mỗi bảng đủ 10 dòng, tách riêng
                              🏆 Kiểm Tra trắc nghiệm 4 lựa chọn (chế độ `mulquiz`,
                              thoát → quay về màn tra cứu, không rơi về menu)
                           📐 Công Thức — công thức lớp 1–5 (chip đổi lớp)
@@ -110,7 +110,7 @@ Rồi upload lại. *(Chỉ mở `index.html` trực tiếp trên máy thì khô
 
 ### 3.6. Sửa màn 📘 Bảng & Công Thức (tra cứu)
 - **Bảng cửu chương:** phạm vi trong `js/data.js` → `MUL_TABLES` (mặc định `[2…9]`).
-  Hàm sinh câu kiểm tra: `QUESTIONS.mulquiz` (≈70% nhân, còn lại điền số thiếu / phép chia);
+  Hàm sinh câu kiểm tra: `QUESTIONS.mulquiz` (trộn 3 dạng: nhân · điền số thiếu · phép chia);
   bảng hiện tại do `setMulQuizTable(t)` đặt (0 = 🔀 Trộn hết).
 - **Công thức theo lớp:** `js/data.js` → `REF_FORMULAS = { 1: [...], …, 5: [...] }` —
   mỗi mục `{ icon, title, rows }`, `rows` là mảng `[nhãn, công thức]` hoặc chuỗi một dòng.
