@@ -255,7 +255,8 @@ QUESTIONS.num = function (g) {
     }
     if (k0 === "seq") {
       const a = ri(1, 4);
-      return makeQ(`<div class="q-line">${a} · ${a + 1} · ?</div>`, numChoices(a + 1, 0, 10),
+      /* Dãy a · (a+1) · ? → số đứng sau phải là a+2 (vd 3 · 4 · ? → 5) */
+      return makeQ(`<div class="q-line">${a} · ${a + 1} · ?</div>`, numChoices(a + 2, 0, 10),
         "Số tiếp theo là:", "Bé tìm số tiếp theo nhé!", ["soTiep"]);
     }
     const a = ri(1, 9);

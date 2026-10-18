@@ -282,6 +282,19 @@ window.init = init;
   ok(shapeBad === 0, "Hình Dạng mẫu giáo: đáp án luôn là 1 trong 3 hình vẽ");
   ok(shapeSeen.size >= 10, `Random phong phú — ${shapeSeen.size} hình khác nhau trong 60 câu`);
 
+  /* Số tiếp theo mẫu giáo: 3 · 4 · ? → đáp án phải là 5 (KHÔNG được là 4) */
+  let seqSeen = 0, seqBad = 0;
+  for (let i = 0; i < 200; i++) {
+    const nq = T.QUESTIONS.num(0);
+    const m = /^(\d+) · (\d+) · \?$/.exec(String(nq.html).replace(/<[^>]*>/g, "").trim());
+    if (!m) continue;
+    seqSeen++;
+    const want = +m[2] + 1;
+    if (String(nq.choices[nq.answer]).trim() !== String(want)) seqBad++;
+  }
+  ok(seqSeen > 0 && seqBad === 0,
+    `Số tiếp theo mẫu giáo đúng — ${seqSeen} câu, đáp án luôn là số đứng sau`);
+
   console.log("\n[8] Luồng 📘 BẢNG & CÔNG THỨC (tra cứu — không tính điểm)");
   document.querySelector("#btn-back").click();   /* chưa trả lời → về thẳng menu */
   ok(active() === "screen-menu", "Thoát màn chơi → về menu");
